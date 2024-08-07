@@ -8,6 +8,7 @@ from users.serializers import PaymentSerializer, UserSerializer
 
 
 class PaymentListAPIView(ListAPIView):
+    permission_classes = [IsAuthenticated]
     queryset = Payment.objects.all()
     serializer_class = PaymentSerializer
     filter_backends = (filters.OrderingFilter, DjangoFilterBackend)
