@@ -43,3 +43,24 @@ class Payment(models.Model):
     payment_amount = models.FloatField(verbose_name='Сумма платежа', help_text='Укажите сумму платежа')
     payment_method = models.CharField(max_length=4, verbose_name='Способ оплаты', help_text='Укажите способ оплаты',
                                       choices=PAYMENT_CHOICES)
+
+    def __str__(self):
+        return f'{self.user.email} - {self.payment_amount} руб.'
+
+    class Meta:
+        verbose_name = 'Платеж'
+        verbose_name_plural = 'Платежи'
+
+
+class Subscription(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Пользователь', related_name='subscriptions',
+                             help_text='Укажите пользователя')
+    course = models.ForeignKey(Course, on_delete=models.SET_NULL, verbose_name='Курс',
+                               help_text='Укажите курс', related_name='subscriptions', null=True, blank=True)
+
+    def __str__(self):
+        return f'{self.user.email} - {self.course.title}'
+
+    class Meta:
+        verbose_name = 'Подписка'
+        verbose_name_plural = 'Подписки'
