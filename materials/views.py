@@ -3,6 +3,7 @@ from rest_framework.viewsets import ModelViewSet
 from rest_framework.generics import CreateAPIView, ListAPIView, RetrieveAPIView, UpdateAPIView, DestroyAPIView
 
 from materials.models import Course, Lesson
+from materials.paginators import CustomPagination
 from materials.serializers import CourseSerializer, LessonSerializer, DetailCourseSerializer
 from users.permissions import IsModerator, IsOwner
 
@@ -10,6 +11,7 @@ from users.permissions import IsModerator, IsOwner
 class CourseViewSet(ModelViewSet):
     queryset = Course.objects.all()
     permission_classes = [IsAuthenticated]
+    pagination_class = CustomPagination
 
     def get_serializer_class(self):
         if self.action == 'retrieve':
@@ -22,9 +24,10 @@ class CourseViewSet(ModelViewSet):
         course.save()
 
     def get_queryset(self):
-        if self.action == 'list' and not self.request.user.groups.filter(name="moderators").exists():
-            return Course.objects.filter(owner=self.request.user)
-        return Course.objects.all()
+        if self.action == 'list' and self.request.user.groups.filter(
+                name="moderators").exists() or self.request.user.is_superuser:
+            return Course.objects.all()
+        return Course.objects.filter(owner=self.request.user)
 
     def get_permissions(self):
         if self.action == 'create':
@@ -51,11 +54,12 @@ class LessonListAPIView(ListAPIView):
     permission_classes = [IsAuthenticated]
     queryset = Lesson.objects.all()
     serializer_class = LessonSerializer
+    pagination_class = CustomPagination
 
     def get_queryset(self):
-        if self.request.user.groups.filter(name="moderators").exists():
-            return Course.objects.all()
-        return Course.objects.filter(owner=self.request.user)
+        if self.request.user.groups.filter(name="moderators").exists() or self.request.user.is_superuser:
+            return Lesson.objects.all()
+        return Lesson.objects.filter(owner=self.request.user)
 
 
 class LessonRetrieveAPIView(RetrieveAPIView):
