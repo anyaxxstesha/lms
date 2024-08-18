@@ -1,9 +1,13 @@
+from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import filters
+from rest_framework import filters, status
 from rest_framework.generics import ListAPIView, CreateAPIView, RetrieveAPIView, UpdateAPIView, DestroyAPIView
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.views import APIView
 
-from users.models import Payment, User
+from materials.models import Course
+from users.models import Payment, User, Subscription
 from users.serializers import PaymentSerializer, UserSerializer
 
 
@@ -46,3 +50,17 @@ class UserUpdateAPIView(UpdateAPIView):
 class UserDestroyAPIView(DestroyAPIView):
     permission_classes = [IsAuthenticated]
     queryset = User.objects.all()
+
+
+class SubscriptionTogglerAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, pk):
+        user = request.user
+        course = get_object_or_404(Course, pk=pk)
+        subscription, created = Subscription.objects.get_or_create(user=user, course=course)
+        if created:
+            return Response({"message": "subscription is added"}, status=status.HTTP_201_CREATED)
+        else:
+            subscription.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
