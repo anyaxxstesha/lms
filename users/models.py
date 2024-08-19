@@ -40,7 +40,7 @@ class Payment(models.Model):
                                     help_text='Укажите оплаченный курс', null=True, blank=True)
     lesson_paid = models.ForeignKey(Lesson, on_delete=models.SET_NULL, verbose_name='Оплаченный урок',
                                     help_text='Укажите оплаченный урок', null=True, blank=True)
-    payment_amount = models.FloatField(verbose_name='Сумма платежа', help_text='Укажите сумму платежа')
+    payment_amount = models.PositiveIntegerField(verbose_name='Сумма платежа', help_text='Укажите сумму платежа')
     payment_method = models.CharField(max_length=4, verbose_name='Способ оплаты', help_text='Укажите способ оплаты',
                                       choices=PAYMENT_CHOICES)
     session_id = models.CharField(max_length=255, blank=True, null=True, verbose_name='id сессии',
