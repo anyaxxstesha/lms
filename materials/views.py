@@ -5,6 +5,7 @@ from rest_framework.generics import CreateAPIView, ListAPIView, RetrieveAPIView,
 from materials.models import Course, Lesson
 from materials.paginators import CustomPagination
 from materials.serializers import CourseSerializer, LessonSerializer, DetailCourseSerializer
+from materials.tasks import start_mailshot
 from users.permissions import IsModerator, IsOwner
 
 
@@ -23,8 +24,17 @@ class CourseViewSet(ModelViewSet):
         course.owner = self.request.user
         course.save()
 
+    def perform_update(self, serializer):
+        course = serializer.save()
+        subscriptions = course.subscriptions.all()
+        subscribed_users = []
+        for subscription in subscriptions:
+            user = subscription.user
+            subscribed_users.append(user.email)
+        start_mailshot.delay(subscribed_users)
+
     def get_queryset(self):
-        if self.action == 'list' and self.request.user.groups.filter(
+        if self.request.user.groups.filter(
                 name="moderators").exists() or self.request.user.is_superuser:
             return Course.objects.all()
         return Course.objects.filter(owner=self.request.user)
