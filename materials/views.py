@@ -26,12 +26,7 @@ class CourseViewSet(ModelViewSet):
 
     def perform_update(self, serializer):
         course = serializer.save()
-        subscriptions = course.subscriptions.all()
-        subscribed_users = []
-        for subscription in subscriptions:
-            user = subscription.user
-            subscribed_users.append(user.email)
-        start_mailshot.delay(subscribed_users)
+        start_mailshot.delay(course_id=course.id)
 
     def get_queryset(self):
         if self.request.user.groups.filter(
